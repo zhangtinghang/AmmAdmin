@@ -2,6 +2,8 @@
 "use strict"
 const mongoose = require('mongoose');
 const typeCode = require('../../../typeCode');
+const Schema = require('../../../Schema/Schema');
+const touristObj = Schema.touristObj; 
 //操作数据库
 const userDB = require('../../../dbsql/user');
 const resData = require('../../../global.config').resData;
@@ -22,7 +24,6 @@ exports.registerFun = function(req, res, next) {
     }
     //未验证是否数据库中有此数据
     userDB.addUser(reqData,function(result){
-        console.log('注册成功返回',result)
         if(result.success == 1){
             resData(res, typeCode.CONSUMER, true, typeCode.REGISTER_SAVE_SUCCESS);
         }else{
@@ -36,13 +37,27 @@ exports.loginFun = function (req, res, next) {
     let findData = {
         number: req.body.number
     }
+    //处理游客模式
+    if(req.body.tourist){
+        findData.roles = ['tourist'];
+        findData.intro = req.body.intro;
+        // let tokenData = createdToken(findData, 60 * 60 * 24 * 365);
+        let tokenData = 'eyJkYXRhIjp7Im51bWJlciI6ImFhMjZjM2VmZDU2NmRiZTVhYzI2MWVjNGI1N2E2ZDY1Iiwicm9sZXMiOlsidG91cmlzdCJdfSwiY3JlYXRlZCI6MTUzNTg4Mzc1NSwiZXhwIjozMTUzNjAwMH0=.aONQ6IsLOCpzw4uL6sinCETLBgnJS+HUsbpLgcNyZkQ=';
+        findData.token = tokenData;
+        resData(res, typeCode.CONSUMER, true, tokenData);
+        //存入数据库中
+        touristObj.update({number: req.body.number},{$set:findData},{upsert:true}, function(err, doc){})     
+        return false;
+    }
+
     var findUserData = new Promise(function(resolve, reject){
         findUser.findOne(findData,{},function(err, doc){
             var roles = null;
             if (err) {
                 roles = [];
+            }else{
+                roles = doc.roles;
             }
-            roles = doc.roles;
             resolve(roles)
         })
     })
@@ -50,9 +65,6 @@ exports.loginFun = function (req, res, next) {
         findData.roles = roles;
         let tokenStr = JSON.stringify(findData);
         let tokenData = createdToken(tokenStr, TOKEN_TIME);
-        let limitData = {
-            'password': 0
-        }
         //更新token
         findUser.findAndModify({number: findData.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
             if (err) {
@@ -65,6 +77,7 @@ exports.loginFun = function (req, res, next) {
 }
 
 exports.getUserInfo = function (req, res, next) {
+    console.log('获取token====', req.query.token)
     let findUser = mongoose.model('userObj');
     let findData = {
         token: req.query.token
@@ -99,3 +112,21 @@ exports.changePasswordFun = function (req, res, next) {
     })
 }
 
+exports.logOutFun = function(req, res, next){
+    const user = req.body.user;
+    const findUser = mongoose.model('userObj');
+    let sid = mongoose.Types.ObjectId(user);
+    let findData = {
+        _id: sid
+    }
+    let upData = {
+        $set: {token: null} 
+    }
+    //删除token
+    findUser.update(findData, upData, {},function (err, doc) {
+        if (err || doc.length == 0) {
+            return resData(res, typeCode.CONSUMER, false, typeCode.OPERATE_ERR);
+        }
+        resData(res, typeCode.CONSUMER, true, typeCode.OPERATE_SUCCRSS);
+    })
+}

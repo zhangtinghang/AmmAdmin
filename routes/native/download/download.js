@@ -58,16 +58,20 @@ exports.uploadFun = function (req, res) {
 }
 
 exports.addDownFun = function (request, res, next) {
-    
     var req = qs.parse(request.body);
+    console.log(req)
     var user = req.user;
     var title = req.dataObj.title;
-    var startTime = req.dataObj.stratTime;
+    var startTime = req.dataObj.startTime;
     var endTime = req.dataObj.endTime,
     content = req.dataObj.content,
-    links = req.dataObj.links,
     status = req.dataObj.status,
+    isOpen = req.dataObj.isOpen,
+    category = req.dataObj.category,
     sid = mongoose.Types.ObjectId(user);
+    var links = {};
+    links.url = req.dataObj.links;
+    links.name = req.dataObj.linkName;
     let reqData = {
         user: sid,
         title: title,
@@ -75,7 +79,9 @@ exports.addDownFun = function (request, res, next) {
         endTime:endTime,
         content:content,
         links:links,
-        status:status
+        status:status,
+        isOpen:isOpen,
+        category:category
     }
     let download = new downloadObj(reqData)
     download.save(function (err) {

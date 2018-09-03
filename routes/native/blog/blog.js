@@ -13,13 +13,15 @@ exports.blogAddFun = function (req, res, next) {
     var intro = req.body.intro;
     var category = req.body.category;
     var blog = req.body.blog;
+    var isOpen = req.body.isOpen;
     var sid = mongoose.Types.ObjectId(user);
     let reqData = {
         user: sid,
         title: title,
         intro: intro,
         category: category,
-        blog: blog
+        blog: blog,
+        isOpen: isOpen
     }
     let newblog = new blogObj(reqData)
 
@@ -32,6 +34,23 @@ exports.blogAddFun = function (req, res, next) {
 }
 
 exports.getBlogFun = function (req, res, next) {
+    let payload = null;
+    if(req.payload.roles.indexOf('admin') >= 0){
+        console.log('超级管理员模式')
+        payload = 4;
+    }else if(req.payload.roles.indexOf('edit') >= 0){
+        console.log('编辑模式')
+        payload = 3;
+    }else if(req.payload.roles.indexOf('normal') >= 0){
+        console.log('普通模式')
+        payload = 2;
+    }else if(req.payload.roles.indexOf('tourist') >= 0){
+        console.log('游客模式')
+        payload = 1;
+    }else {
+        console.log('无权限')
+        payload = 0;
+    }
     let _id = req.query.id;
     let limitNum = req.query.limit;
     let preNum = req.query.preNum;
@@ -50,21 +69,33 @@ exports.getBlogFun = function (req, res, next) {
         }
         countNum = count
     });
+    //对查询过滤
+    let query = null;
     if (_id) {
         let id = mongoose.Types.ObjectId(_id);
+        let findObj  = null;
         if(nextNum - preNum > 0){
-            var query = blogObj.find({'_id': {"$lt": id}});
+            findObj = {
+                '_id': {"$lt": id}
+            }         
         }else{
-            var query = blogObj.find({'_id': {"$gt": id}});
+            findObj = {
+                '_id': {"$gt": id}
+            }
         }
+        query = blogObj.find(findObj);
     }else {
-        var query = blogObj.find({});       
+        query = blogObj.find({});
     }
     //查询数据
     if(nextNum - preNum > 0){
         query.sort({'_id': -1})
     }else {
         query.sort({'_id': 1})
+    }
+    console.log('这是输入',payload)
+    if(payload > 1){
+        query.where('category').lt(5)
     }
     query.skip(skips)
     query.limit(limitNum)

@@ -13,10 +13,12 @@ exports.addNoticeFun = function (req, res, next) {
     var req = qs.parse(req.body);
     var user = req.user;
     var title = req.dataObj.title;
-    var startTime = req.dataObj.stratTime;
+    var startTime = req.dataObj.startTime;
     var endTime = req.dataObj.endTime,
     content = req.dataObj.content,
     status = req.dataObj.status,
+    category = req.dataObj.category,
+    isOpen = req.dataObj.isOpen,
     sid = mongoose.Types.ObjectId(user);
     let reqData = {
         user: sid,
@@ -24,7 +26,9 @@ exports.addNoticeFun = function (req, res, next) {
         startTime:startTime,
         endTime:endTime,
         content:content,
-        status:status
+        status:status,
+        isOpen:isOpen,
+        category:category
     }
     let notice = new noticeObj(reqData)
     notice.save(function (err) {

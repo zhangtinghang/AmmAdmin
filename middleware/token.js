@@ -17,7 +17,6 @@ var token = {
         hash.update(base64Str);
         var signature = hash.digest('base64');
 
-
         return base64Str + "." + signature;
     },
     decodeToken: function (token) {
@@ -51,16 +50,13 @@ var token = {
     checkToken: function (resDecode) {
         var resDecode = resDecode;
         if (!resDecode) {
-
             return {'errno':-1,success:false,code:5000,data:'暂无token信息,请先登录！'};
         }
         //是否过期
         var expState = (parseInt(Date.now() / 1000) - parseInt(resDecode.payload.created)) > parseInt(resDecode.payload.exp) ? false : true;
         if (resDecode.signature === resDecode.checkSignature && expState) {
-
             return true;
         }
-
         return {'errno':0,success:false,code:5000,data:'token过期,请重新登录！'};
     }
 

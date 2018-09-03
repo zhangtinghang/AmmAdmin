@@ -25,18 +25,23 @@ router.use('/encrypt', function (req, res, next) {
         res.header("Access-Control-Allow-Headers" , "Content-Type"); 
         res.header("Content-Type", "application/json;charset=utf-8");
         res.end();
-    }else{
+    }else {
         let token = req.body.token || req.query.token;
         let decodeData = decodeToken(token);
         let checkData = checkToken(decodeData);
-        if (checkData === true) {
-            req.payload = decodeData.payload.data;
+        if (checkData) {
+            try {
+                req.payload = JSON.parse(decodeData.payload.data);
+            } catch (error) {
+                req.payload = decodeData.payload.data;
+            }
             next();
         } else {
             res.json(checkData);
         }
     }
 })
+
 
 //账号相关
 /* POST users register listing. */
@@ -51,27 +56,28 @@ router.get('/encrypt/getUserInfo', getUserInfo);
 /* POST users password changed listing. */
 const changePasswordFun = user.changePasswordFun;
 router.post('/public/changePassword', changePasswordFun);
+const logOutFun = user.logOutFun;
+router.post('/encrypt/logOut', logOutFun);
+
 
 // 博文相关
 /* POST add blog listing. */
 const blogAddFun = blog.blogAddFun;
 router.post('/encrypt/blog', blogAddFun);
-
 /* GET get All blog listing. */
 const getBlogFun = blog.getBlogFun;
 router.get('/encrypt/blog', getBlogFun);
-
 /**
  * remove blog by _id
  */
 const blogDelFun = blog.blogDelFun;
 router.post('/encrypt/blogRemove', blogDelFun);
-
 /**
  * modify blog by _id
  */
 const blogModifyFun = blog.blogModifyFun;
 router.post('/encrypt/blogModify', blogModifyFun);
+
 
 //作品集相关
 /* POST add portfolio listing. */
@@ -97,6 +103,7 @@ router.post('/encrypt/portolioRemove', portfolioDelFun);
  */
 const portfolioModifyFun = portfolio.portfolioModifyFun;
 router.post('/encrypt/portfolioModify', portfolioModifyFun);
+
 
 //账号信息相关
 /* GET account list listing. */
@@ -138,6 +145,7 @@ router.post('/encrypt/modDown',modDownFun);
 
 const updateDownLoad = download.updateDownLoad;
 router.post('/encrypt/updDown',updateDownLoad);
+
 
 //公告信息
 const addNoticeFun = notice.addNoticeFun;

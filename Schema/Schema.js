@@ -36,6 +36,59 @@ const userSchema = new Schema({
         type:Number,
         default:0
     },
+    type:{
+        type:Number,
+        default:0
+    },
+    tag: {
+
+    }
+}, {
+    versionKey: false, //去掉版本锁 __v0
+    timestamps: {
+        createdAt: 'createTime',
+        updatedAt: 'updateTime'
+    } //自动管理修改时间
+
+})
+
+// 游客表
+const touristSchema = new Schema({
+    username: {
+        type: String,
+        index: 1,
+        default:'游客'
+    },
+    number: {
+        type: String,
+        required: true,
+        index: true,
+        unique: true
+    },
+    intro: {
+        type: String,
+        default: ''
+    },
+    avatar: {
+        type: String,
+        default: ''
+    },
+    token: {
+        type: String,
+        default: ''
+    },
+    roles: {
+        type: Array,
+        default: ['tourist']
+    },
+    status:{
+        type:Number,
+        default:0
+    },
+    type:{
+        type:Number,
+        default:0
+    },
     tag: {
 
     }
@@ -76,6 +129,10 @@ const blogSchema = new Schema({
     status:{
         type:Number,
         default:0
+    },
+    isOpen:{
+        type:Boolean,
+        default:false
     },
     tag: {
 
@@ -149,6 +206,10 @@ const portfolioSchema = new Schema({
         type:Number,
         default:0
     },
+    isOpen:{
+        type:Boolean,
+        default:false
+    },
     tag:{
         type: Array,
         default: []
@@ -202,6 +263,14 @@ const noticeSchema = new Schema({
     status:{
         type:Number,
         default:0
+    },
+    isOpen:{
+        type:Boolean,
+        default:0
+    },
+    category:{
+        type: Number,
+        default: 0
     },
     tag:{
         type: Array,
@@ -258,6 +327,14 @@ const downloadSchema = new Schema({
         type:Number,
         default:0
     },
+    isOpen:{
+        type:Boolean,
+        default:0
+    },
+    category:{
+        type: Number,
+        default: 0
+    },
     tag:{
         type: Array,
         default: []
@@ -279,10 +356,12 @@ const blogObj = mongoose.model('blogObj', blogSchema);
 const portfolioObj = mongoose.model('portfolioObj', portfolioSchema);
 const noticeObj = mongoose.model('noticeObj',noticeSchema);
 const downloadObj = mongoose.model('downloadObj', downloadSchema);
+const touristObj = mongoose.model('touristObj',touristSchema);
 module.exports = {
     userObj,
     blogObj,
     portfolioObj,
     noticeObj,
-    downloadObj
+    downloadObj,
+    touristObj
 }
