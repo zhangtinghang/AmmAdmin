@@ -37,32 +37,22 @@ exports.loginFun = function (req, res, next) {
     let findData = {
         number: req.body.number
     }
-    //处理游客模式
-    if(req.body.tourist){
-        findData.roles = ['tourist'];
-        findData.intro = req.body.intro;
-        // let tokenData = createdToken(findData, 60 * 60 * 24 * 365);
-        let tokenData = 'eyJkYXRhIjp7Im51bWJlciI6ImFhMjZjM2VmZDU2NmRiZTVhYzI2MWVjNGI1N2E2ZDY1Iiwicm9sZXMiOlsidG91cmlzdCJdfSwiY3JlYXRlZCI6MTUzNTg4Mzc1NSwiZXhwIjozMTUzNjAwMH0=.aONQ6IsLOCpzw4uL6sinCETLBgnJS+HUsbpLgcNyZkQ=';
-        findData.token = tokenData;
-        resData(res, typeCode.CONSUMER, true, tokenData);
-        //存入数据库中
-        touristObj.update({number: req.body.number},{$set:findData},{upsert:true}, function(err, doc){})     
-        return false;
-    }
-
     var findUserData = new Promise(function(resolve, reject){
         findUser.findOne(findData,{},function(err, doc){
-            var roles = null;
+            var obj = {};
             if (err) {
-                roles = [];
+                obj.roles = [];
+                obj.id = '';
             }else{
-                roles = doc.roles;
+                obj.roles = doc.roles;
+                obj.id = doc._id;
             }
-            resolve(roles)
+            resolve(obj)
         })
     })
-    findUserData.then(function(roles){
-        findData.roles = roles;
+    findUserData.then(function(obj){
+        console.log(obj)
+        findData = Object.assign(obj, findData);
         let tokenStr = JSON.stringify(findData);
         let tokenData = createdToken(tokenStr, TOKEN_TIME);
         //更新token
@@ -77,7 +67,6 @@ exports.loginFun = function (req, res, next) {
 }
 
 exports.getUserInfo = function (req, res, next) {
-    console.log('获取token====', req.query.token)
     let findUser = mongoose.model('userObj');
     let findData = {
         token: req.query.token

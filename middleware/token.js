@@ -12,7 +12,7 @@ var token = {
         var base64Str = Buffer.from(JSON.stringify(obj2), "utf8").toString("base64");
 
         //添加签名，防篡改
-        var secret = "zhangtinghang";
+        var secret = "zhangtinghang.pathfinder666";
         var hash = crypto.createHmac('sha256', secret);
         hash.update(base64Str);
         var signature = hash.digest('base64');

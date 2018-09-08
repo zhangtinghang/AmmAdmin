@@ -31,20 +31,22 @@ exports.loginFun = function (req, res, next) {
 
     var findUserData = new Promise(function(resolve, reject){
         findUser.findOne(findData,{},function(err, doc){
-            var roles = null;
+            var obj = {};
             if (err) {
-                roles = [];
+                obj.roles = [];
+                obj.id = '';
             }else{
-                roles = doc.roles;
+                obj.roles = doc.roles;
+                obj.id = doc._id;
             }
-            resolve(roles)
+            resolve(obj)
         })
     })
-    findUserData.then(function(roles){
-        findData.roles = roles;
+    findUserData.then(function(obj){
+        findData = Object.assign(obj, findData);
         let tokenStr = JSON.stringify(findData);
         let tokenData = createdToken(tokenStr, TOKEN_TIME);
-        //更新token
+        // 更新token
         findUser.findAndModify({number: findData.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
             if (err) {
                 return resData(res, typeCode.CONSUMER, false, typeCode.LOGIN_FIND_ERR);

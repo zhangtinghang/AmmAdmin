@@ -10,6 +10,9 @@ var users = require('./routes/users');
 var native = require('./routes/native/index');
 var web = require('./routes/web/index');
 var app = express();
+
+//打开数据库连接
+require('./db.config').openDb;
 //静态文件
 app.use(express.static('public'));
 // view engine setup

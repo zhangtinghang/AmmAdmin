@@ -1,7 +1,7 @@
 "use strict"
 const Schema = require('../../../Schema/Schema');
 const blogObj = Schema.blogObj;
-const getDtata = require('../../utils/select').select;
+const getDtata = require('../../utils/operation').selectData;
 
 /**
  * 查询

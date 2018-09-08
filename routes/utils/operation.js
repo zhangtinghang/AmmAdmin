@@ -1,42 +1,39 @@
     const payload = require('./index').payload;
     const resData = require('../../global.config').resData;
     const typeCode = require('../../typeCode');
-var select = function(req, res, blogObj){
+    const mongoose = require('mongoose');
+var selectData = function(req, res, blogObj){
+    let { id, limit, preNum, nextNum, category} = req.query;
     let rolesType = payload(req.payload.roles);
-    let _id = req.query.id;
-    let limitNum = req.query.limit;
-    let preNum = req.query.preNum;
-    let nextNum = req.query.nextNum;
-    let category = req.query.category;
-    limitNum = parseInt(limitNum);
+    let limitNum = parseInt(limit);
     let skips = null;
     if(nextNum - preNum > 0){
         skips  = (nextNum - preNum -1)*limitNum;
-    }else{
+    }else {
         skips  = (preNum - nextNum -1)*limitNum;
     }
     //对查询过滤
     let query = null;
-    let findObj  = null;
-    if (_id) {
-        let id = mongoose.Types.ObjectId(_id);
+    let findObj  = {};
+    if (id) {
+        let _id = mongoose.Types.ObjectId(id);
         if(nextNum - preNum > 0){
-            findObj = {
-                '_id': {"$lt": id}
-            }         
+            findObj._id = {"$lt": _id}   
         }else{
-            findObj = {
-                '_id': {"$gt": id}
-            }
+            findObj._id = {"$gt": _id};
         }
-    }else {
-        findObj = {};
     }
-    //判断用户类型
-    if(rolesType == 1){
+    /**
+     * 处理游客，普通用户模式
+     */
+    if(rolesType <= 1){
         findObj.isOpen  = true;
     }
-    //判断查询类型
+
+    /**
+     * 判断查询类型
+     * 分类查询，所有查询
+     */
     if(category){
         findObj.category = category
     }
@@ -71,6 +68,32 @@ var select = function(req, res, blogObj){
            
     })
 }
+
+/**
+ * 添加数据到数据库中
+ */
+const addData = function(){
+
+}
+
+/**
+ * 修改数据库中的数据
+ */
+
+const modifyData = function(){
+
+}
+
+/**
+ * 删除数据库中的数据
+ */
+
+const deleteData = function(){
+
+}
 module.exports = {
-    select
+    selectData,
+    addData,
+    modifyData,
+    deleteData
 }
