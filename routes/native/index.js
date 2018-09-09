@@ -110,13 +110,17 @@ router.post('/encrypt/portfolioModify', portfolioModifyFun);
 const getUserList = account.getUserList;
 router.get('/encrypt/getUserList', getUserList);
 
+/* POST account bulk register listing. */
+const bulkRegister = account.bulkRegister;
+router.post('/encrypt/bulkRegister', bulkRegister);
+
 /* POST account change listing. */
 const updateAccount = account.updateAccount;
 router.post('/encrypt/updateAccount', updateAccount);
 
 /* POST account change listing. */
-const findAccount = account.findAccount;
-router.post('/encrypt/findAccount', findAccount);
+// const findAccount = account.findAccount;
+// router.post('/encrypt/findAccount', findAccount);
 
 /* POST account change listing. */
 const changeAccStatus = account.changeAccStatus;
