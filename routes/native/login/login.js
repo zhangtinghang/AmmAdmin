@@ -14,6 +14,7 @@ const createdToken = token.createToken;
 exports.registerFun = function(req, res, next) {
     //生成用户信息表
     let oper = req.body.operator || null;
+    let type = req.body.type || null;
     let reqData = {
         username: req.body.username,
         number: req.body.number,
@@ -21,6 +22,9 @@ exports.registerFun = function(req, res, next) {
     }
     if(oper){
         reqData.operator = oper;
+    }
+    if(type){
+        reqData.type = type;
     }
     //未验证是否数据库中有此数据
     userDB.addUser(reqData,function(result){

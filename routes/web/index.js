@@ -13,6 +13,7 @@ const blog = require('./blog/blog');
 const portfolio = require('./portfolio/portfolio');
 const download = require('./download/download');
 const notice = require('./notice/notice');
+const account = require('./account/account');
 /* POST encrypt verify listing. */
 router.use('/encrypt', function (req, res, next) {
     if(req.method === 'OPTIONS'){
@@ -41,7 +42,7 @@ router.use('/encrypt', function (req, res, next) {
     }
 })
 
-//账号相关
+//登陆相关
 /* POST users login listing. */
 const loginFun = user.loginFun;
 router.post('/public/login', loginFun);
@@ -51,6 +52,7 @@ router.get('/encrypt/getUserInfo', getUserInfo);
 /* POST users password changed listing. */
 const changePasswordFun = user.changePasswordFun;
 router.post('/public/changePassword', changePasswordFun);
+
 const logOutFun = user.logOutFun;
 router.post('/encrypt/logOut', logOutFun);
 
@@ -62,14 +64,20 @@ router.get('/encrypt/blog', getBlogFun);
 //作品集相关
 /* GET get All portfolio listing. */
 const getPortfolioFun = portfolio.getPortfolioFun;
-router.get('/encrypt/portfolio',getPortfolioFun);
+router.get('/encrypt/portfolio', getPortfolioFun);
 
 //下载信息
 const getDownFun = download.getDownFun;
-router.get('/encrypt/getDown',getDownFun);
+router.get('/encrypt/getDown', getDownFun);
 
 //公告信息
 const getNoticeFun = notice.getNoticeFun;
-router.get('/encrypt/getNotice',getNoticeFun);
+router.get('/encrypt/getNotice', getNoticeFun);
 
+//账号信息
+const updateAccount = account.updateAccount;
+router.post('/encrypt/updateAccount', updateAccount);
+
+const modifyPwd = account.modifyPwd;
+router.post('/encrypt/modifyPwd', modifyPwd);
 module.exports = router;
