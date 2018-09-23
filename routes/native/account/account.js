@@ -2,12 +2,10 @@
 const mongoose = require('mongoose');
 const typeCode = require('../../../typeCode');
 const Schema = require('../../../Schema/Schema');
-const resData = require('../../../global.config').resData;
 const userObj = Schema.userObj;
 const qs = require("qs");
 
 const getDtata = require('../../utils/operaAdmin').selectData;
-const addData =  require('../../utils/operaAdmin').addData;
 const deleteData = require('../../utils/operaAdmin').deleteData;
 const modifyStatusData = require('../../utils/operaAdmin').modifyStatusData;
 const updateData = require('../../utils/operaAdmin').updateData;
@@ -27,8 +25,8 @@ exports.bulkRegister = function(req, res, next){
     //构造存入数据库中的数据
     for(let i=0;i<bulkData.length;i++){
         let obj = {};
-        obj.name = bulkData[i]['姓名'];
-        obj.password = '123456';
+        obj.username = bulkData[i]['姓名'];
+        obj.password = '6LcwQ5eXPzE3ke9RxEABwvWzyLw=';
         obj.number = bulkData[i]['学号'];
         obj.type = bulkData[i]['所属部门'];
         newBulk.push(obj);

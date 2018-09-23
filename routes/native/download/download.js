@@ -60,7 +60,7 @@ exports.uploadFun = function (req, res) {
         res.send({
             success:true,
             errno:0,
-            data:{name:files.file.name,url:"/upCover/" + imagesName}
+            data:{name:files.file.name,url:"/upload/" + imagesName}
         })
     })
 }

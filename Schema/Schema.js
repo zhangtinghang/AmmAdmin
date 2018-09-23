@@ -66,7 +66,7 @@ const touristSchema = new Schema({
         unique: true
     },
     intro: {
-        type: String,
+        type: Object,
         default: ''
     },
     avatar: {
@@ -87,7 +87,7 @@ const touristSchema = new Schema({
     },
     type:{
         type:Number,
-        default:0
+        default:-1
     },
     tag: {
 

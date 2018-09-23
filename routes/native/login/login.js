@@ -3,7 +3,9 @@
 const mongoose = require('mongoose');
 const typeCode = require('../../../typeCode');
 const Schema = require('../../../Schema/Schema');
-const touristObj = Schema.touristObj; 
+const touristObj = Schema.touristObj;
+const userObj = Schema.userObj;
+const crypto = require("crypto");
 //操作数据库
 const userDB = require('../../../dbsql/user');
 const resData = require('../../../global.config').resData;
@@ -13,15 +15,11 @@ const createdToken = token.createToken;
 
 exports.registerFun = function(req, res, next) {
     //生成用户信息表
-    let oper = req.body.operator || null;
-    let type = req.body.type || null;
-    let reqData = {
-        username: req.body.username,
-        number: req.body.number,
-        password: req.body.password
-    }
-    if(oper){
-        reqData.operator = oper;
+    let { operator = null, type = null, username, number, password } = req.body;
+    password = crypto.createHmac('sha1', JSON.stringify(password)).digest('base64');
+    let reqData = { username, number, password };
+    if(operator){
+        reqData.operator = operator;
     }
     if(type){
         reqData.type = type;
@@ -37,14 +35,16 @@ exports.registerFun = function(req, res, next) {
 }
 
 exports.loginFun = function (req, res, next) {
-    let findUser = mongoose.model('userObj');
+    let { number, password } = req.body;
+    password = crypto.createHmac('sha1', JSON.stringify(password)).digest('base64');
     let findData = {
-        number: req.body.number
+        number,
+        password
     }
     var findUserData = new Promise(function(resolve, reject){
-        findUser.findOne(findData,{},function(err, doc){
+        userObj.findOne(findData,{},function(err, doc){
             var obj = {};
-            if (err) {
+            if (err || !doc) {
                 obj.roles = [];
                 obj.id = '';
             }else{
@@ -55,23 +55,24 @@ exports.loginFun = function (req, res, next) {
         })
     })
     findUserData.then(function(obj){
-        console.log(obj)
-        findData = Object.assign(obj, findData);
-        let tokenStr = JSON.stringify(findData);
+        //处理账户不存在情况
+        if(!obj.id){
+            return resData(res, typeCode.CONSUMER, false, '账号或密码错误！');
+        }
+        obj.number = findData.number;
+        let tokenStr = JSON.stringify(obj);
         let tokenData = createdToken(tokenStr, TOKEN_TIME);
         //更新token
-        findUser.findAndModify({number: findData.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
+        userObj.findAndModify({number: obj.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
             if (err) {
                 return resData(res, typeCode.CONSUMER, false, typeCode.LOGIN_FIND_ERR);
             }
             resData(res, typeCode.CONSUMER, true, doc.value.token);
         });
     })
-
 }
 
 exports.getUserInfo = function (req, res, next) {
-    let findUser = mongoose.model('userObj');
     let findData = {
         token: req.query.token
     }
@@ -79,7 +80,7 @@ exports.getUserInfo = function (req, res, next) {
         'password': 0
     }
     //查询数据
-    findUser.findOne(findData, limitData, function (err, doc) {
+    userObj.findOne(findData, limitData, function (err, doc) {
         if (err || !doc || doc.length == 0) {
             return resData(res, typeCode.CONSUMER, false, typeCode.LOGIN_FIND_ERR);
         }
@@ -88,7 +89,6 @@ exports.getUserInfo = function (req, res, next) {
 }
 
 exports.changePasswordFun = function (req, res, next) {
-    let findUser = mongoose.model('userObj');
     var number = req.body.number;
     var newPassword = req.body.newPassword;
     var findData = {
@@ -97,7 +97,7 @@ exports.changePasswordFun = function (req, res, next) {
     var upData = {
         password: newPassword
     }
-    findUser.update(findData, upData, function (err, doc) {
+    userObj.update(findData, upData, function (err, doc) {
         if (err || doc.length == 0) {
             return resData(res, typeCode.CONSUMER, false, typeCode.CHANGE_PASSWORD_ERR);
         }
@@ -107,7 +107,6 @@ exports.changePasswordFun = function (req, res, next) {
 
 exports.logOutFun = function(req, res, next){
     const user = req.body.user;
-    const findUser = mongoose.model('userObj');
     let sid = mongoose.Types.ObjectId(user);
     let findData = {
         _id: sid
@@ -116,7 +115,7 @@ exports.logOutFun = function(req, res, next){
         $set: {token: null} 
     }
     //删除token
-    findUser.update(findData, upData, {},function (err, doc) {
+    userObj.update(findData, upData, {},function (err, doc) {
         if (err || doc.length == 0) {
             return resData(res, typeCode.CONSUMER, false, typeCode.OPERATE_ERR);
         }

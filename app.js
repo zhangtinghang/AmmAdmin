@@ -1,12 +1,10 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+const qs = require("qs");
 
-var index = require('./routes/index');
-var users = require('./routes/users');
 var native = require('./routes/native/index');
 var web = require('./routes/web/index');
 var app = express();
@@ -36,8 +34,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/', index);
-app.use('/users', users);
+app.use(function(req, res,next){
+  try {
+    req.body = qs.parse(req.body);
+  } catch (error) {
+    // console.log('格式化报错',err)
+  }
+  next();
+})
+
 app.use('/native', native);
 app.use('/web',web);
 // catch 404 and forward to error handler

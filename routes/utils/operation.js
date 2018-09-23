@@ -106,12 +106,9 @@
      * 更新数据库中的数据
      */
     const updateData = function (req, res, schemaObj) {
-        let request = qs.parse(req.body);
-        let id = request._id;
+        let { id, token} = req.payload;
         let ID = mongoose.Types.ObjectId(id);
-        let updateObj = request.dataObj;
-        delete updateObj.token
-        console.log(updateObj)
+        let updateObj = req.body.updateObj;
         schemaObj.findByIdAndUpdate(ID, updateObj, {
             new: true
         }, function (err, result) {

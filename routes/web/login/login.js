@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const typeCode = require('../../../typeCode');
 const Schema = require('../../../Schema/Schema');
 const touristObj = Schema.touristObj; 
+const payload = require('../../utils/index').payload;
+const crypto = require("crypto");
 //操作数据库
 const userDB = require('../../../dbsql/user');
 const resData = require('../../../global.config').resData;
@@ -11,31 +13,55 @@ const token = require('../../../middleware/token');
 const TOKEN_TIME = 60 * 60 * 24;
 const createdToken = token.createToken;
 
+
+/**
+ * 前端游客模式登陆(若无此浏览器，则自动注册)
+ * @param number
+ */
+ exports.loginTourist = function(req, res, next){
+    let { number, intro } = req.body;
+    let findData = {
+        number,
+        intro
+    }
+    findData.roles = ['tourist'];
+    let tokenData = createdToken(findData, 60 * 60 * 24 * 365);
+    findData.token = tokenData;
+    //存入数据库中
+    let registPromise = new Promise(function(resolve, reject){
+       touristObj.update({number: findData.number},{$set:findData},{upsert: true}, function(err, doc){
+            if(err){
+                reject({type:1, data: err})
+            }
+            resolve(doc)
+        })
+    })
+    //获取登陆token
+    registPromise
+    .then(function(){
+        //返回用户信息
+        resData(res, typeCode.CONSUMER, true, findData.token);
+    }).catch(err => resData(res, typeCode.CONSUMER, false, '出现未知错误,请联系管理员！'));
+}
+
+ /**
+ * 前端正常用户登录
+ */
 exports.loginFun = function (req, res, next) {
     let findUser = mongoose.model('userObj');
+    let { number, password } = req.body;
+    password = crypto.createHmac('sha1', JSON.stringify(password)).digest('base64');
     let findData = {
-        number: req.body.number
+        number,
+        password
     }
-    //处理游客模式
-    if(req.body.tourist){
-        findData.roles = ['tourist'];
-        findData.intro = req.body.intro;
-        // let tokenData = createdToken(findData, 60 * 60 * 24 * 365);
-        let tokenData = 'eyJkYXRhIjp7Im51bWJlciI6ImFhMjZjM2VmZDU2NmRiZTVhYzI2MWVjNGI1N2E2ZDY1Iiwicm9sZXMiOlsidG91cmlzdCJdfSwiY3JlYXRlZCI6MTUzNTg4Mzc1NSwiZXhwIjozMTUzNjAwMH0=.aONQ6IsLOCpzw4uL6sinCETLBgnJS+HUsbpLgcNyZkQ=';
-        findData.token = tokenData;
-        resData(res, typeCode.CONSUMER, true, tokenData);
-        //存入数据库中
-        touristObj.update({number: req.body.number},{$set:findData},{upsert:true}, function(err, doc){})     
-        return false;
-    }
-
     var findUserData = new Promise(function(resolve, reject){
         findUser.findOne(findData,{},function(err, doc){
             var obj = {};
-            if (err) {
+            if (err || !doc) {
                 obj.roles = [];
                 obj.id = '';
-            }else{
+            }else {
                 obj.roles = doc.roles;
                 obj.id = doc._id;
             }
@@ -43,23 +69,35 @@ exports.loginFun = function (req, res, next) {
         })
     })
     findUserData.then(function(obj){
-        findData = Object.assign(obj, findData);
-        let tokenStr = JSON.stringify(findData);
+        if(!obj.id){
+            return resData(res, typeCode.CONSUMER, false, '账号或密码错误！');
+        }
+        obj.number = findData.number;
+        let tokenStr = JSON.stringify(obj);
         let tokenData = createdToken(tokenStr, TOKEN_TIME);
         // 更新token
-        findUser.findAndModify({number: findData.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
+        findUser.findAndModify({number: obj.number}, [], { $set: { token: tokenData } }, {new:true}, function (err,doc) {
             if (err) {
                 return resData(res, typeCode.CONSUMER, false, typeCode.LOGIN_FIND_ERR);
             }
             resData(res, typeCode.CONSUMER, true, doc.value.token);
         });
     })
-
 }
 
+/**
+ * 获取用户信息
+ */
+
 exports.getUserInfo = function (req, res, next) {
-    console.log('获取token====', req.query.token)
-    let findUser = mongoose.model('userObj');
+    console.log('token===',req.payload)
+    let findUser = null;
+    let rolesType = payload(req.payload.roles);
+    if(rolesType == 1){
+        findUser = mongoose.model('touristObj');
+    }else{
+        findUser = mongoose.model('userObj');
+    }
     let findData = {
         token: req.query.token
     }
@@ -75,6 +113,11 @@ exports.getUserInfo = function (req, res, next) {
     })
 }
 
+/** 
+ * 修改密码
+ * @param conditions 
+ * @param callback 
+ */  
 exports.changePasswordFun = function (req, res, next) {
     let findUser = mongoose.model('userObj');
     var number = req.body.number;
@@ -92,6 +135,10 @@ exports.changePasswordFun = function (req, res, next) {
         resData(res, typeCode.CONSUMER, true, doc);
     })
 }
+
+/**
+ * 退出登陆
+ */
 
 exports.logOutFun = function(req, res, next){
     const user = req.body.user;

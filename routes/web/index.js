@@ -46,12 +46,16 @@ router.use('/encrypt', function (req, res, next) {
 /* POST users login listing. */
 const loginFun = user.loginFun;
 router.post('/public/login', loginFun);
+
+const loginTourist = user.loginTourist;
+router.post('/public/touristLogin',loginTourist);
+
 /* GET user info listing. */
 const getUserInfo = user.getUserInfo;
 router.get('/encrypt/getUserInfo', getUserInfo);
 /* POST users password changed listing. */
-const changePasswordFun = user.changePasswordFun;
-router.post('/public/changePassword', changePasswordFun);
+// const changePasswordFun = user.changePasswordFun;
+// router.post('/public/changePassword', changePasswordFun);
 
 const logOutFun = user.logOutFun;
 router.post('/encrypt/logOut', logOutFun);
