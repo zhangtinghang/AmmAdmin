@@ -9,6 +9,7 @@ const PORTFOLIO_GET_ERR = '获取作品列表失败';
 const OPERATE_SUCCRSS = '操作成功';
 const OPERATE_ERR = '操作失败！';
 const CONSUMER = 0;
+const CONSUMER1 = 0;
 
 module.exports = {
     REGISTER_SAVE_SUCCESS,
